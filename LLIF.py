@@ -52,6 +52,9 @@ def printSpikeInput(spikes, tMax):
 
 printSpikeInput(spike_input, TMAX)
 
+# Determine Vl (leak constant) and threshold
+# Vt = MAX(Vt-1 - Vl, 0) + SUM(Sti * Wi * VeMax)
+
 #axs[0].axhline(y=1, '-')
 #fig = plt.figure()
 #fig.suptitle('Spike Input', fontsize=20, fontweight='bold')
