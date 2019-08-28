@@ -12,8 +12,11 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 # Assume deltaT is 1ms
-# Assume volley period is 20ms
+# Assume volley period is 25ms
 # Assume Tmax is 8
+DT = 1
+PERIOD = 25
+TMAX = 8
 
 # TODO, something important to think, there are multiple paths between two excitatory neurons.
 # [Physiology and anatomy of synaptic connections between thick tufted pyramidal neurones
@@ -27,16 +30,29 @@ from matplotlib.animation import FuncAnimation
 # spike from axon 3 arrives at time 2
 spike_input=[0, 3, 1, 2]
 
-# Create a figure object
-fig, axs = plt.subplots(2, 1, constrained_layout=True)
+def printSpikeInput(spikes, tMax):
+    # Create a figure object
+    fig = plt.figure()
 
-axs[0].set_title('Spike Input', fontsize=16, fontweight='bold')
-axs[0].set_xlabel('Spike Arrival', fontsize=12)
-axs[0].set_ylabel('Axon Index', fontsize=12)
-axs[0].set_xlim(0,8)
-axs[0].set_ylim(0,5)
+    plt.title('Spike Input', fontsize=16, fontweight='bold')
+    plt.xlabel('Spike Arrival', fontsize=12)
+    plt.ylabel('Axons', fontsize=12)
+    plt.yticks([])
+    plt.xlim(-1,tMax)
+    plt.ylim(0,len(spikes))
 
-axs[0].axhline(y=1, '-')
+    # Draw axons
+    for i in range(0, len(spikes)):
+        plt.axhline(y=i,ls='--',color='k')
+
+    # Plot timings
+    for i in range(0, len(spikes)):
+        plt.plot([spikes[i],spikes[i]],[i,i+1],color='b')
+    plt.show()
+
+printSpikeInput(spike_input, TMAX)
+
+#axs[0].axhline(y=1, '-')
 #fig = plt.figure()
 #fig.suptitle('Spike Input', fontsize=20, fontweight='bold')
 #plt.xlabel('Spike Arrival', fontsize=18)
@@ -47,7 +63,6 @@ axs[0].axhline(y=1, '-')
 #plt.xlim(0, 8)
 #plt.ylim(0, 4)
 
-plt.show()
 exit(0)
 
 x = np.arange(10)
