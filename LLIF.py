@@ -11,13 +11,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-# Assume deltaT is 1ms
-# Assume volley period is 25ms
-# Assume Tmax is 8
-DT = 1
-PERIOD = 25
-TMAX = 8
-
 # TODO, something important to think, there are multiple paths between two excitatory neurons.
 # [Physiology and anatomy of synaptic connections between thick tufted pyramidal neurones
 # in the developing rat neocortex] identifies there are between 4 and 8 potential synaptic
@@ -50,35 +43,24 @@ def printSpikeInput(spikes, tMax):
         plt.plot([spikes[i],spikes[i]],[i,i+1],color='b')
     plt.show()
 
-printSpikeInput(spike_input, TMAX)
+# Assume Tmax is 8 (for encoding)
+TMAX = 8
+#printSpikeInput(spike_input, TMAX)
 
-# Determine Vl (leak constant) and threshold
+## Determine Vl (leak constant) and threshold
 # Vt = MAX(Vt-1 - Vl, 0) + SUM(Sti * Wi * VeMax)
+VeMax = 3
+# Assume deltaT is 1ms
+# Assume volley period is 25ms
+DT = 1
+PERIOD = 25
 
-#axs[0].axhline(y=1, '-')
-#fig = plt.figure()
-#fig.suptitle('Spike Input', fontsize=20, fontweight='bold')
-#plt.xlabel('Spike Arrival', fontsize=18)
-#plt.ylable('Axon Index')
+# Vl should not exceed VeMax
+def printResponse (Vl,VeMax,dt,period,spikes):
+    # spikes arrivals should be controlled by global clock
+    # TODO, How global clock and local clock cooperate?
 
-#plt.axhline(y=1)
 
-#plt.xlim(0, 8)
-#plt.ylim(0, 4)
+# Exp 1: set Vl 0.1~1
+Vl = np.arange(0.1,1,0.1)
 
-exit(0)
-
-x = np.arange(10)
-y = np.random.random(10)
-
-fig = plt.figure()
-plt.xlim(0, 10)
-plt.ylim(0, 1)
-graph, = plt.plot([], [], 'o')
-
-def animate(i):
-    graph.set_data(x[:i+1], y[:i+1])
-    return graph
-
-ani = FuncAnimation(fig, animate, frames=10, interval=200)
-plt.show()
