@@ -27,7 +27,7 @@ def printSpikeInput(spikes, tMax):
     # Create a figure object
     fig = plt.figure()
 
-    plt.title('Spike Input', fontsize=16, fontweight='bold')
+    plt.title('Local Buffer', fontsize=16, fontweight='bold')
     plt.xlabel('Spike Arrival', fontsize=12)
     plt.ylabel('Axons', fontsize=12)
     plt.yticks([])
@@ -45,7 +45,7 @@ def printSpikeInput(spikes, tMax):
 
 # Assume Tmax is 8 (for encoding)
 TMAX = 8
-#printSpikeInput(spike_input, TMAX)
+printSpikeInput(spike_input, TMAX)
 
 ## Determine Vl (leak constant) and threshold
 # Vt = MAX(Vt-1 - Vl, 0) + SUM(Sti * Wi * VeMax)
@@ -56,10 +56,23 @@ DT = 1
 PERIOD = 25
 
 # Vl should not exceed VeMax
-def printResponse (Vl,VeMax,dt,period,spikes):
-    # spikes arrivals should be controlled by global clock
-    # TODO, How global clock and local clock cooperate?
+# spikes arrivals should be controlled by global clock?
+# TODO, How global clock and local clock cooperate?
 
+# From the IBM Compass paper, each core is entirely event-driven, global clock is not
+# involved.
+# Assumption: all the spikes are sent to the local buffer, the first spike
+# should trigger the system to send the core the slow clock (1000Hz for example).
+# I think the timing in buffer should correlate the timing in the core, say, each spike 
+# in the buffer should have its own local timestamp.
+
+# I assume each spike in spikes (input) reside in local buffer, and its arrival time
+# is the core's local timestamp. (It makes sense to me, I doubt it will make sense
+# to you. Sorry.)
+class Packet:
+    axon_index = -1 # Correspond to the axon's buffer
+    target_exci_neuron = -1
+    arrival = -1
 
 # Exp 1: set Vl 0.1~1
 Vl = np.arange(0.1,1,0.1)
