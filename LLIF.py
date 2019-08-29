@@ -45,11 +45,11 @@ def printSpikeInput(spikes, tMax):
 
 # Assume Tmax is 8 (for encoding)
 TMAX = 8
-printSpikeInput(spike_input, TMAX)
+# printSpikeInput(spike_input, TMAX)
 
 ## Determine Vl (leak constant) and threshold
 # Vt = MAX(Vt-1 - Vl, 0) + SUM(Sti * Wi * VeMax)
-VeMax = 3
+VeMax = 3 # Required voltage to read a PCM cell.
 # Assume deltaT is 1ms
 # Assume volley period is 25ms
 DT = 1
@@ -66,14 +66,41 @@ PERIOD = 25
 # I think the timing in buffer should correlate the timing in the core, say, each spike 
 # in the buffer should have its own local timestamp.
 
-# I assume each spike in spikes (input) reside in local buffer, and its arrival time
+# I assume each spike in spike_input resides in local buffer, and its arrival time
 # is the core's local timestamp. (It makes sense to me, I doubt it will make sense
 # to you. Sorry.)
+
+# An abstract class to represent a spike
 class Packet:
-    axon_index = -1 # Correspond to the axon's buffer
+    target_core = -1 # Experimental study, only one core is considered.
+    target_axon = -1
     target_exci_neuron = -1
     arrival = -1
 
+# Assume our core has four axons and one excitatory neuron.
+class Core:
+    
+
+    def __init__(self, _num_axons, _num_neurons):
+        self.num_axons = _num_axons
+        self.num_neurons = _num_neurons
+        self.num_synapse = _num_axons * _num_neurons
+
+        # One buffer for each axon
+        self.buffers = [[] for i in range(_num_axons)]
+
+        # synapse can be represented as a matrix (cross-bar)
+        self.synapse = [[] for i in range(_num_axons)]
+        [[j.append(1) for i in range(_num_neurons)] for j in self.synapse]
+
+    def printSynapse(self):
+        for i in range(self.num_axons):
+            for j in range(self.num_neurons):
+                print self.synapse[i][j],
+            print ''
+
+core = Core(4,1)
+core.printSynapse()
+
 # Exp 1: set Vl 0.1~1
 Vl = np.arange(0.1,1,0.1)
-
