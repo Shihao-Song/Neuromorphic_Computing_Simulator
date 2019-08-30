@@ -217,12 +217,15 @@ class Core:
 
 # Assume our core has four axons and one excitatory neuron.
 core = Core(4,1)
-pkt = Packet()
-pkt.target_axon = 0
-pkt.target_exci_neuron = 0
-core.recvPkt(pkt)
 
-while core.tick():
-    pass
+# Simulating a simple timer
+for i in range(core.PERIOD):
+    for j in range(len(spike_input)):
+        if spike_input[j] == i:
+            pkt = Packet()
+            pkt.target_axon = j
+            pkt.target_exci_neuron = 0
+            core.recvPkt(pkt)
+    core.tick()
 
 core.respFigure()
