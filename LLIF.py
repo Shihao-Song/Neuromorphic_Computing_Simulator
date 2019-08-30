@@ -16,13 +16,6 @@ from matplotlib.animation import FuncAnimation
 # in the developing rat neocortex] identifies there are between 4 and 8 potential synaptic
 # contacts between pairs of excitatory neurons.
 
-# Assume
-# spike from axon 0 arrives at time 0
-# spike from axon 1 arrives at time 3
-# spike from axon 2 arrives at time 1
-# spike from axon 3 arrives at time 2
-spike_input=[0, 6, 1, 2]
-
 def printSpikeInput(spikes, tMax):
     # Create a figure object
     fig = plt.figure()
@@ -42,10 +35,6 @@ def printSpikeInput(spikes, tMax):
     for i in range(0, len(spikes)):
         plt.plot([spikes[i],spikes[i]],[i,i+1],color='b')
     plt.show()
-
-# Assume Tmax is 8 (for encoding)
-TMAX = 8
-# printSpikeInput(spike_input, TMAX)
 
 ## Determine Vl (leak constant) and threshold
 
@@ -117,9 +106,9 @@ class Core:
     # Assume deltaT is 1ms
     # Assume volley period is 25ms
     DT = 1
-    PERIOD = 25
+    PERIOD = 40
 
-    Vl = 0.12
+    Vl = 0.1
 
     def __init__(self, _num_axons, _num_neurons):
         self.num_axons = _num_axons
@@ -203,7 +192,7 @@ class Core:
         plt.xlabel('Time', fontsize=12)
         plt.ylabel('Voltage', fontsize=12)
         plt.xlim(0, self.PERIOD)
-        plt.ylim(0, 16)
+        plt.ylim(0, 20)
 
         time = [i for i in range(self.PERIOD)]
         plt.plot(time,self.respAmp[0])
@@ -217,6 +206,17 @@ class Core:
 
 # Assume our core has four axons and one excitatory neuron.
 core = Core(4,1)
+
+# Assume
+# spike from axon 0 arrives at time 0
+# spike from axon 1 arrives at time 14
+# spike from axon 2 arrives at time 15
+# spike from axon 3 arrives at time 5
+spike_input = [0, 14, 15, 5]
+
+# Assume Tmax is 16 (for encoding)
+TMAX = 16
+printSpikeInput(spike_input, TMAX)
 
 # Simulating a simple timer
 for i in range(core.PERIOD):
