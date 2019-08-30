@@ -90,6 +90,8 @@ class Buffer:
 
         self.buffer[target_neuron].push_back(pkt)
 
+    def extrSpike(self, clock)
+
 class Core:
     # Vt = MAX(Vt-1 - Vl, 0) + SUM(Sti * Wi * VeMax)
     VeMax = 3 # Required voltage to read a PCM cell.
@@ -114,6 +116,11 @@ class Core:
         self.active = False # Event-driven
         self.clock = 0;
 
+        # Spikes
+        self.preSpikes = []
+        self.postSpikes = []
+        self.respAmp = [] # For printing only
+
     def push_back(self, pkt):
         target_axon = pkt.target_axon
 
@@ -133,13 +140,21 @@ class Core:
         # Push to buffer
         self.push_back(pkt)
     
+    def sumOfSpikes(self):
+        spikes = []
+        for axon in self.buffers:
+            axon.extrSpike(self.clock)
+
     def tick(self):
         # Perform operations
         assert self.active == True
 
-        self.clock = self.clock + 1
+        self.clock = self.clock + self.DT
+        # TODO, for all the neurons
+        self.sumOfSpikes()
+        # Vt = max(Vt-1 - Vl, 0) + SUM(Sti * Wi * VeMax)
 
-        if self.clock == PERIOD:
+        if self.clock == self.PERIOD:
             return False
         else:
             return True
@@ -153,9 +168,12 @@ class Core:
 # Assume our core has four axons and one excitatory neuron.
 core = Core(4,1)
 pkt = Packet()
-pkt.target_axon = 1
+pkt.target_axon = 0
 pkt.target_exci_neuron = 0
 core.recvPkt(pkt)
+
+while core.tick():
+    pass
 
 # Exp 1: set Vl 0.1~1
 Vl = np.arange(0.1,1,0.1)
