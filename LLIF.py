@@ -80,6 +80,22 @@ class BufferEntry:
     def push_back(self, pkt):
         self.spikes.append(pkt)
 
+    def extrSpike(self, clock):
+        if self.blocked == True:
+            # This axon has already been processed in the current period
+            return None
+
+        if len(self.spikes) == 0:
+            # This axon has no spikes for this neuron
+            return None
+
+        if self.spikes[0].arrival == clock:
+            spike = self.spikes.pop(0)
+            self.blocked = True
+            return spike
+
+        return None
+        
 class Buffer:
     def __init__(self,  _num_neurons):
         # Split the buffer for each neuron for simple simulation
@@ -90,15 +106,18 @@ class Buffer:
 
         self.buffer[target_neuron].push_back(pkt)
 
-    def extrSpike(self, clock)
+    def extrSpike(self, clock, neuron):
+        return self.buffer[neuron].extrSpike(clock)
+
+    # TODO, normalize the spikes after every volley processed.
 
 class Core:
-    # Vt = MAX(Vt-1 - Vl, 0) + SUM(Sti * Wi * VeMax)
+    ## Equation: Vt = MAX(Vt-1 - Vl, 0) + SUM(Sti * Wi * VeMax)
     VeMax = 3 # Required voltage to read a PCM cell.
     # Assume deltaT is 1ms
     # Assume volley period is 25ms
     DT = 1
-    PERIOD = 25
+    PERIOD = 1
 
     def __init__(self, _num_axons, _num_neurons):
         self.num_axons = _num_axons
@@ -135,25 +154,33 @@ class Core:
             self.active = True
         
         pkt.arrival = self.clock
-        print "Receiving a spike at time:", self.clock, "; Axon:", target_axon, \
-                                            "; Neuron:", target_neuron
+        #print "Receiving a spike at time:", self.clock, "; Axon:", target_axon, \
+        #                                    "; Neuron:", target_neuron
         # Push to buffer
         self.push_back(pkt)
-    
-    def sumOfSpikes(self):
+
+    # Sum of all the spikes to the given neuron at current time-stamp
+    def sumOfSpikes(self, neuron):
         spikes = []
         for axon in self.buffers:
-            axon.extrSpike(self.clock)
+            spike = axon.extrSpike(self.clock, neuron)
+            if spike != None:
+                spikes.append(spike)
+
+        for spike in spikes:
+            print "Receiving a spike at time:", spike.arrival, "; Axon:", spike.target_axon, \
+                                             "; Neuron:", spike.target_exci_neuron
 
     def tick(self):
         # Perform operations
         assert self.active == True
 
-        self.clock = self.clock + self.DT
         # TODO, for all the neurons
-        self.sumOfSpikes()
-        # Vt = max(Vt-1 - Vl, 0) + SUM(Sti * Wi * VeMax)
+        for i in range(self.num_neurons):
+            self.sumOfSpikes(i)
+            # Vt = max(Vt-1 - Vl, 0) + SUM(Sti * Wi * VeMax)
 
+        self.clock = self.clock + self.DT
         if self.clock == self.PERIOD:
             return False
         else:
