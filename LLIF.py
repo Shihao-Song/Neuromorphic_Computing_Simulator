@@ -72,6 +72,24 @@ class Packet:
     arrival = -1
 
 # An abstract class to represent a core
+class BufferEntry:
+    def __init__(self):
+        self.blocked = False
+        self.spikes = [] # All spikes to this neuron
+
+    def push_back(self, pkt):
+        self.spikes.append(pkt)
+
+class Buffer:
+    def __init__(self,  _num_neurons):
+        # Split the buffer for each neuron for simple simulation
+        self.buffer = [BufferEntry() for i in range(_num_neurons)]
+
+    def push_back(self, pkt):
+        target_neuron = pkt.target_exci_neuron
+
+        self.buffer[target_neuron].push_back(pkt)
+
 class Core:
     # Vt = MAX(Vt-1 - Vl, 0) + SUM(Sti * Wi * VeMax)
     VeMax = 3 # Required voltage to read a PCM cell.
@@ -86,7 +104,7 @@ class Core:
         self.num_synapse = _num_axons * _num_neurons
 
         # One buffer for each axon
-        self.buffers = [[] for i in range(_num_axons)]
+        self.buffers = [Buffer(_num_neurons) for i in range(_num_axons)]
 
         # synapse can be represented as a matrix (cross-bar)
         self.synapse = [[] for i in range(_num_axons)]
@@ -96,21 +114,35 @@ class Core:
         self.active = False # Event-driven
         self.clock = 0;
 
-    def recvPkt(self, pkt):
+    def push_back(self, pkt):
         target_axon = pkt.target_axon
 
-        # The first event triggers the clock
+        self.buffers[target_axon].push_back(pkt)
+
+    def recvPkt(self, pkt):
+        target_axon = pkt.target_axon
+        target_neuron = pkt.target_exci_neuron
+
+        # The first event triggers the activation
         if self.active == False:
             self.active = True
         
         pkt.arrival = self.clock
-        print "Receiving a spike at time: %; Axon: %", self.clock, target_axon
+        print "Receiving a spike at time:", self.clock, "; Axon:", target_axon, \
+                                            "; Neuron:", target_neuron
+        # Push to buffer
+        self.push_back(pkt)
     
     def tick(self):
         # Perform operations
         assert self.active == True
 
         self.clock = self.clock + 1
+
+        if self.clock == PERIOD:
+            return False
+        else:
+            return True
 
     def printSynapse(self):
         for i in range(self.num_axons):
@@ -120,7 +152,10 @@ class Core:
 
 # Assume our core has four axons and one excitatory neuron.
 core = Core(4,1)
-
+pkt = Packet()
+pkt.target_axon = 1
+pkt.target_exci_neuron = 0
+core.recvPkt(pkt)
 
 # Exp 1: set Vl 0.1~1
 Vl = np.arange(0.1,1,0.1)
