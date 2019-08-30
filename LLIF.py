@@ -117,7 +117,9 @@ class Core:
     # Assume deltaT is 1ms
     # Assume volley period is 25ms
     DT = 1
-    PERIOD = 1
+    PERIOD = 25
+
+    Vl = 0.12
 
     def __init__(self, _num_axons, _num_neurons):
         self.num_axons = _num_axons
@@ -138,7 +140,7 @@ class Core:
         # Spikes
         self.preSpikes = []
         self.postSpikes = []
-        self.respAmp = [] # For printing only
+        self.respAmp = [[] for i in range(_num_neurons)] # For printing only
 
     def push_back(self, pkt):
         target_axon = pkt.target_axon
@@ -167,24 +169,45 @@ class Core:
             if spike != None:
                 spikes.append(spike)
 
+        spikeSum = 0.0
         for spike in spikes:
             print "Receiving a spike at time:", spike.arrival, "; Axon:", spike.target_axon, \
                                              "; Neuron:", spike.target_exci_neuron
+
+            spikeSum += self.synapse[spike.target_axon][spike.target_exci_neuron] * \
+                        self.VeMax
+        return spikeSum
 
     def tick(self):
         # Perform operations
         assert self.active == True
 
-        # TODO, for all the neurons
+        # Vt = max(Vt-1 - Vl, 0) + SUM(Sti * Wi * VeMax)
         for i in range(self.num_neurons):
-            self.sumOfSpikes(i)
-            # Vt = max(Vt-1 - Vl, 0) + SUM(Sti * Wi * VeMax)
+            Vt = 0.0
+            if self.clock > 0:
+                Vt += max(self.respAmp[i][self.clock - 1] - self.Vl, 0.0)
+            Vt += self.sumOfSpikes(i)
+            self.respAmp[i].append(Vt)
 
         self.clock = self.clock + self.DT
         if self.clock == self.PERIOD:
             return False
         else:
             return True
+
+    def respFigure(self):
+        fig = plt.figure()
+
+        plt.title('Neuron Response', fontsize=16, fontweight='bold')
+        plt.xlabel('Time', fontsize=12)
+        plt.ylabel('Voltage', fontsize=12)
+        plt.xlim(0, self.PERIOD)
+        plt.ylim(0, 16)
+
+        time = [i for i in range(self.PERIOD)]
+        plt.plot(time,self.respAmp[0])
+        plt.show()
 
     def printSynapse(self):
         for i in range(self.num_axons):
@@ -202,5 +225,4 @@ core.recvPkt(pkt)
 while core.tick():
     pass
 
-# Exp 1: set Vl 0.1~1
-Vl = np.arange(0.1,1,0.1)
+core.respFigure()
